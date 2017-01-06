@@ -5,6 +5,8 @@ fit函数
 
 predict函数
 基于coef_进行预测，预测值的shape为(1, _)
+
+程序验证部分参考sklearn中的Linear Regression Example
 """
 
 import numpy as np
