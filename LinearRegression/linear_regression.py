@@ -1,12 +1,13 @@
+# -*- coding: utf-8 -*-
 """
-³ÌĞòËµÃ÷£º
-fitº¯Êı
-»ùÓÚXºÍY×÷ÏßĞÔ»Ø¹éÄâºÏ£¬Çó³öÏµÊıcoef_£¬shapeÎª(1, _)
+ç¨‹åºè¯´æ˜ï¼š
+fitå‡½æ•°
+åŸºäºXå’ŒYä½œçº¿æ€§å›å½’æ‹Ÿåˆï¼Œæ±‚å‡ºç³»æ•°coef_ï¼Œshapeä¸º(1, _)
 
-predictº¯Êı
-»ùÓÚcoef_½øĞĞÔ¤²â£¬Ô¤²âÖµµÄshapeÎª(1, _)
+predictå‡½æ•°
+åŸºäºcoef_è¿›è¡Œé¢„æµ‹ï¼Œé¢„æµ‹å€¼çš„shapeä¸º(1, _)
 
-³ÌĞòÑéÖ¤²¿·Ö²Î¿¼sklearnÖĞµÄLinear Regression Example
+ç¨‹åºéªŒè¯éƒ¨åˆ†å‚è€ƒsklearnä¸­çš„Linear Regression Example
 """
 
 import numpy as np
@@ -21,8 +22,6 @@ class LinearRegressor:
         X = np.array(X).reshape((len(X), -1))
         X = np.c_[np.ones(len(X)), X]   #add a constant column
         Y = np.array(Y).reshape((len(Y), -1))
-        if Y.shape[1] != 1:
-            Y = Y.T
         if X.shape[0] != Y.shape[0] or Y.shape[1] != 1:
             raise Exception('Input Error')
         self.coef_= np.linalg.inv(X.T.dot(X)).dot(X.T).dot(Y)[:, 0]
