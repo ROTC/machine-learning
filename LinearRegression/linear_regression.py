@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-程序说明：
+线性回归：
 fit函数
 基于X和y作线性回归拟合，求出系数coef_，shape为(1, _)，X为矩阵，y为向量
 
@@ -26,7 +26,7 @@ class LinearRegressor:
             raise Exception('Input Error')
         self.cofe_= np.linalg.inv(X.T.dot(X)).dot(X.T).dot(y)[:, 0]
 
-    def predict(self, X):
+    def predict(self, X): 
         X = np.c_[np.ones(len(X)), np.array(X)]
         y = self.coef_.dot(X.T)
         return y
@@ -47,3 +47,4 @@ if __name__ == '__main__':
     print('Coefficients: \n', regr.coef_)
     #The mean squared error
     print('Mean squared error: %.2f' % np.mean((regr.predict(diabetes_X_test)-diabetes_y_test)**2))
+    

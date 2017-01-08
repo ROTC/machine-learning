@@ -1,2 +1,4 @@
 # machine-learning
-常见机器学习算法的实现代码
+Implementations for Machine Learning Algorithms:
+- Linear Regression
+- Logistic Regression
