@@ -1,49 +1,73 @@
-import numpy as np 
-from sklearn import datasets
+import numpy as np
+from sklearn import datasets, linear_model
 
-class LogisticRegressor:
+class LogisticRegression(object):
+    """Logistic regression model.
 
-	def __init__(self):
-		self.coef_ = None
-		
-	def fit(self, X, y):
-		X = np.array(X).reshape((len(X), -1))
-		X = np.c_[np.ones(len(X)), X]   #add a constant column
-		y = np.array(y).reshape((len(y), -1))
+    Attributes
+    -----------
+    coef_ : array, shape = (m, )
+            Estimated coefficients for the linear classification problem
 
-		w_old = np.ones(X.shape[1])#/1000			# 系数初始值
-		w_old = w_old.reshape((-1, 1))
-		r = 100		# 迭代次数上限
-		d = 1e-10	# 梯度模值界限
-		for n in range(r):
-			p = np.exp(X.dot(w_old))/(1+np.exp(X.dot(w_old)))#np.apply_along_axis(prob, 0, w_old, X.T)
-			#print(p.shape)
-			g = X.T.dot(y - p)
-			gm = np.sqrt(g.T.dot(g))[0, 0]
-			print(gm)
-			if gm < d:
-				break
-			D = p*(1-p)
-			D = np.diag(D.reshape((-1,)))
-			#print(T.shape)
-			H = -X.T.dot(D).dot(X)
-			H_inv = np.linalg.inv(H)
-			w_new = w_old - H_inv.dot(g)
-			w_old = w_new	
-		self.coef_ = w_old
+    """
 
-	def predict_proba(self, X):
-		return np.exp(X.dot(self.coef_))/(1+np.exp(X.dot(self.coef_)))
+    def fit(self, X, y):
+        X = np.array(X).reshape((len(X), -1))
+        X = np.c_[np.ones(len(X)), X]   #add a constant column
+        y = np.array(y).reshape((len(y), -1))
 
-	def predict(self, X):
-		p = predict_proba()
-		
+        w_old = np.ones(X.shape[1])#/1000			# 系数初始值
+        w_old = w_old.reshape((-1, 1))
+        r = 100		# 迭代次数上限
+        d = 1e-10	# 梯度模值界限
+        # 牛顿法
+        for n in range(r):
+            p = np.exp(X.dot(w_old))/(1+np.exp(X.dot(w_old)))
+            #print(p.shape)
+            g = X.T.dot(y - p)
+            gm = np.sqrt(g.T.dot(g))[0, 0]
+            print(gm)
+            if gm < d:
+                break
+            D = p*(1-p)
+            D = np.diag(D.reshape((-1,)))
+            #print(T.shape)
+            H = -X.T.dot(D).dot(X)
+            H_inv = np.linalg.inv(H)
+            w_new = w_old - H_inv.dot(g)
+            w_old = w_new
+        self.coef_ = w_old
+
+    def predict_proba(self, X):
+        X = np.c_[np.ones(len(X)), X]
+        p = np.exp(X.dot(self.coef_))/(1+np.exp(X.dot(self.coef_)))
+        return p.reshape((p.shape[0], ))
+
+    def predict(self, X):
+        p = self.predict_proba(X)
+        return (p > 0.5).astype(int)
+
 if __name__ == '__main__':
-	X = [[2],
-		 [1],
-		 [0]]
-	y = [1, 1, 0]
-	lr = LogisticRegressor()
-	lr.fit(X, y)
+    X = [[2],[1],[0]]
+    y = [1, 1, 0]
+    lr = LogisticRegression()
+    lr.fit(X, y)
+    X1 = [[1.5], [0.5]]
+    print(lr.predict_proba(X1))
+    print(lr.predict(X1))
 
+    digits = datasets.load_digits()
+    X_digits = digits.data
+    y_digits = digits.target
+    n_samples = len(X_digits)
+    X_train = X_digits[:.9 * n_samples]
+    y_train = y_digits[:.9 * n_samples]
+    X_test = X_digits[.9 * n_samples:]
+    y_test = y_digits[.9 * n_samples:]
 
+    lr_skl = linear_model.LogisticRegression()
+    lr_skl.fit(X_train, y_train)
+    p_skl = lr_skl.predict_proba(X_test)
+    lr_r = LogisticRegression()
+    lr_r.fit(X_train, y_train)
+    p_r = lr_r.predict_proba(X_test)
