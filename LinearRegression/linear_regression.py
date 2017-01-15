@@ -68,3 +68,4 @@ if __name__ == '__main__':
     print('Coefficients: \n', regr.coef_)
     #The mean squared error
     print('Mean squared error: %.2f' % np.mean((regr.predict(diabetes_X_test)-diabetes_y_test)**2))
+

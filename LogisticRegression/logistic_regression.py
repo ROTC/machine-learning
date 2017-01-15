@@ -12,31 +12,75 @@ class LogisticRegression(object):
     """
 
     def fit(self, X, y):
-        X = np.array(X).reshape((len(X), -1))
-        X = np.c_[np.ones(len(X)), X]   #add a constant column
-        y = np.array(y).reshape((len(y), -1))
+        """Fit logistic model
 
-        w_old = np.ones(X.shape[1])#/1000			# 系数初始值
+        Parameters
+        ----------
+        X : list or array, shape = (m, n),
+            Training data
+
+        y : list or array, shape = (m, ),
+            Sample labels
+
+        Returns
+        ----------
+        self : returns an instance of self.
+        """
+
+        n_samples = len(X)
+        X = np.array(X).reshape((n_samples, -1))
+        print(X)
+        n_features = X.shape[1]
+        X = np.c_[np.ones(n_samples), X]   #add a constant column
+        y = np.array(y).reshape((n_samples, -1))
+
+        w_old = np.zeros(n_features+1)#/1000			# 系数初始值
         w_old = w_old.reshape((-1, 1))
-        r = 100		# 迭代次数上限
-        d = 1e-10	# 梯度模值界限
-        # 牛顿法
+        #print(w_old)
+        #r = 100		# 迭代次数上限
+        #d = 1e-10	# 梯度模值界限
+        ## 牛顿法
+        #for n in range(r):
+        #    p = np.exp(X.dot(w_old))/(1+np.exp(X.dot(w_old)))
+        #    #print(p.shape)
+        #    g = X.T.dot(y - p)
+        #    gm = np.sqrt(g.T.dot(g))[0, 0]
+        #    print(gm)
+        #    if gm < d:
+        #        break
+        #    D = p*(1-p)
+        #    D = np.diag(D.reshape((-1,)))
+        #    #print(T.shape)
+        #    H = -X.T.dot(D).dot(X)
+        #    H_inv = np.linalg.inv(H)
+        #    w_new = w_old - H_inv.dot(g)
+        #    w_old = w_new
+        #self.coef_ = w_old
+        # 随机梯度下降法
+        #print(X)
+        #print(y)
+        data = np.c_[X, y]
+        #print(data)
+        r = 100
+        c = 0.01
         for n in range(r):
+            np.random.shuffle(data)     #shuffle rows inplace
+            #print(data)
+            X = data[:, :-1]
+            y = data[:, -1:]
             p = np.exp(X.dot(w_old))/(1+np.exp(X.dot(w_old)))
-            #print(p.shape)
             g = X.T.dot(y - p)
             gm = np.sqrt(g.T.dot(g))[0, 0]
             print(gm)
-            if gm < d:
-                break
-            D = p*(1-p)
-            D = np.diag(D.reshape((-1,)))
-            #print(T.shape)
-            H = -X.T.dot(D).dot(X)
-            H_inv = np.linalg.inv(H)
-            w_new = w_old - H_inv.dot(g)
-            w_old = w_new
-        self.coef_ = w_old
+            for i in range(n_samples):
+                xi = X[i, :].reshape((1, -1))
+                #print(X)
+                #print(xi)
+                yi = y[i, :].reshape((1, 1))
+                pi = np.exp(xi.dot(w_old))/(1+np.exp(xi.dot(w_old)))
+                gi = xi.T.dot(yi - pi)
+                w_new = w_old - c * gi
+                w_old = w_new
 
     def predict_proba(self, X):
         X = np.c_[np.ones(len(X)), X]
