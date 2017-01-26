@@ -11,16 +11,19 @@ class LogisticRegression(object):
 
     """
 
-    def fit(self, X, y):
+    def fit(self, X, y, solver = 'gd'):
         """Fit logistic model
 
         Parameters
         ----------
-        X : list or array, shape = (m, n),
-            Training data
+        X : list or array, shape = (n_samples, n_features + 1),
+            Training data, adding a constant column(ones)
 
-        y : list or array, shape = (m, ),
+        y : list or array, shape = (n_samples, ),
             Sample labels
+
+        solver : {'gd', 'sgd'}
+            Algorithm to use in the optimization problem
 
         Returns
         ----------
@@ -29,58 +32,49 @@ class LogisticRegression(object):
 
         n_samples = len(X)
         X = np.array(X).reshape((n_samples, -1))
-        print(X)
         n_features = X.shape[1]
-        X = np.c_[np.ones(n_samples), X]   #add a constant column
         y = np.array(y).reshape((n_samples, -1))
 
-        w_old = np.zeros(n_features+1)#/1000			# 系数初始值
+        w_old = np.ones(n_features)#/1000			# 系数初始值
         w_old = w_old.reshape((-1, 1))
-        #print(w_old)
-        #r = 100		# 迭代次数上限
-        #d = 1e-10	# 梯度模值界限
-        ## 牛顿法
-        #for n in range(r):
-        #    p = np.exp(X.dot(w_old))/(1+np.exp(X.dot(w_old)))
-        #    #print(p.shape)
-        #    g = X.T.dot(y - p)
-        #    gm = np.sqrt(g.T.dot(g))[0, 0]
-        #    print(gm)
-        #    if gm < d:
-        #        break
-        #    D = p*(1-p)
-        #    D = np.diag(D.reshape((-1,)))
-        #    #print(T.shape)
-        #    H = -X.T.dot(D).dot(X)
-        #    H_inv = np.linalg.inv(H)
-        #    w_new = w_old - H_inv.dot(g)
-        #    w_old = w_new
-        #self.coef_ = w_old
-        # 随机梯度下降法
-        #print(X)
-        #print(y)
-        data = np.c_[X, y]
-        #print(data)
-        r = 100
-        c = 0.01
-        for n in range(r):
-            np.random.shuffle(data)     #shuffle rows inplace
-            #print(data)
-            X = data[:, :-1]
-            y = data[:, -1:]
-            p = np.exp(X.dot(w_old))/(1+np.exp(X.dot(w_old)))
-            g = X.T.dot(y - p)
-            gm = np.sqrt(g.T.dot(g))[0, 0]
-            print(gm)
-            for i in range(n_samples):
-                xi = X[i, :].reshape((1, -1))
-                #print(X)
-                #print(xi)
-                yi = y[i, :].reshape((1, 1))
-                pi = np.exp(xi.dot(w_old))/(1+np.exp(xi.dot(w_old)))
-                gi = xi.T.dot(yi - pi)
-                w_new = w_old - c * gi
+        if solver == 'gd':
+            alpha = 0.001
+            precision = 0.0001
+            #while True:
+            for r in range(500):
+                #print(-X.dot(w_old))
+                p = 1 / (1 + np.exp(-X.dot(w_old)))
+                g = X.T.dot(y - p)
+                w_new = w_old + alpha * g
+                #print(np.linalg.norm(w_new - w_old))
+                #if np.linalg.norm(w_new - w_old) < precision:
+                #    print('cnt:', cnt)
+                #    break
                 w_old = w_new
+            self.coef_ = w_new
+        elif solver == 'sgd':
+            num_iter = 150
+            data = np.c_[X, y]
+            for j in range(num_iter):
+                np.random.shuffle(data)
+                X = data[:, :-1]
+                #print(X.shape)
+                y = data[:, -1].reshape((-1, 1))
+                #print(y.shape)
+                for i in range(n_samples):
+                    alpha = 4 / (1.0 + j + i) + 0.01
+                    Xi = X[i, :].reshape((1, -1))
+                    #print(Xi.shape)
+                    yi = y[i, :].reshape((-1, 1))
+                    #print(yi.shape)
+                    pi = 1 / (1 + np.exp(-Xi.dot(w_old)))
+                    gi = Xi.T.dot(yi - pi)
+                    w_new = w_old + alpha * gi
+                    w_old = w_new
+            self.coef_ = w_new
+        else:
+            raise ValueError("solver must be one of {'gd', 'sgd'}, got {} instead".format(solver))
+        return self
 
     def predict_proba(self, X):
         X = np.c_[np.ones(len(X)), X]
@@ -91,27 +85,19 @@ class LogisticRegression(object):
         p = self.predict_proba(X)
         return (p > 0.5).astype(int)
 
+def load_data_set():
+    data_mat, label_mat = [], []
+    fr = open('test_set.txt')
+    for line in fr.readlines():
+        line_arr = line.strip().split()
+        data_mat.append([1.0, float(line_arr[0]), float(line_arr[1])])
+        label_mat.append(int(line_arr[2]))
+    return data_mat, label_mat
+
+
 if __name__ == '__main__':
-    X = [[2],[1],[0]]
-    y = [1, 1, 0]
+    data_arr, label_mat = load_data_set()
     lr = LogisticRegression()
-    lr.fit(X, y)
-    X1 = [[1.5], [0.5]]
-    print(lr.predict_proba(X1))
-    print(lr.predict(X1))
+    lr.fit(data_arr, label_mat, 'sgd')
+    #print(lr.coef_)
 
-    digits = datasets.load_digits()
-    X_digits = digits.data
-    y_digits = digits.target
-    n_samples = len(X_digits)
-    X_train = X_digits[:.9 * n_samples]
-    y_train = y_digits[:.9 * n_samples]
-    X_test = X_digits[.9 * n_samples:]
-    y_test = y_digits[.9 * n_samples:]
-
-    lr_skl = linear_model.LogisticRegression()
-    lr_skl.fit(X_train, y_train)
-    p_skl = lr_skl.predict_proba(X_test)
-    lr_r = LogisticRegression()
-    lr_r.fit(X_train, y_train)
-    p_r = lr_r.predict_proba(X_test)
